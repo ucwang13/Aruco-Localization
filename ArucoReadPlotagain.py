@@ -9,10 +9,9 @@ import matplotlib.pyplot as plt
 from collections import deque
 
 fig = plt.figure()
-#cap = cv2.VideoCapture(0)    # video capture(id of camera)
+cap = cv2.VideoCapture(0)    # video capture(id of camera)
 #cap = cv2.VideoCapture('http://192.168.1.109:8080/video') # video capture object (#ofcamera)
-cap = cv2.VideoCapture('http://10.0.0.43:8080/video') # video capture object (#ofcamera)
-
+#cap = cv2.VideoCapture('http://10.0.0.43:8080/video') # video capture object (#ofcamera)
 
 arucoDict = aruco.Dictionary_get(aruco.DICT_4X4_50)  # Specify the dictionary
 parameters = aruco.DetectorParameters_create()       # Specify detection parameters
@@ -25,7 +24,6 @@ avg = len(avx)
 # load previously saved calibration data
 with np.load('PhoneCalibration.npz') as X:
     cameraMatrix, distCoeffs = [X[i] for i in ('cameraMatrix', 'distCoeffs')]
-
 cv2.namedWindow('Video Out', cv2.WINDOW_NORMAL)     # enable resize
 while True:
     # capture frame by frame
@@ -38,7 +36,7 @@ while True:
     corners, ids, rejectedImgPoints = aruco.detectMarkers(image, arucoDict, parameters=parameters)
     # If at least one marker detected, process aruco marker
     if len(corners) > 0:
-        # estimate the pose of each marker
+        # estimate the pose of each marker(corner, length of side,...)
         rvecs, tvecs, _objPoints = aruco.estimatePoseSingleMarkers(corners, 1, cameraMatrix, distCoeffs)
         l = []
         for i in range(len(ids)):
@@ -78,7 +76,7 @@ while True:
         print(X, Y, Z)
         plt.scatter(X, Y, c = 'r')
         plt.scatter(9.5,Z, c = 'b')
-        plt.axis([-5, 10, -5, 10])
+        plt.axis([-5, 10, -5, 30])
         plt.pause(0.000001)
         plt.cla()
         # draw marker and id
