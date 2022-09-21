@@ -14,19 +14,23 @@ import cv2
 import cv2.aruco as aruco
 import math
 
-#cap = cv2.VideoCapture(0)    # video capture(id of camera)
+cap = cv2.VideoCapture(0)    # video capture(id of camera)
 #cap = cv2.VideoCapture('http://10.186.38.197:8080/video') # video capture object (#ofcamera)
-cap = cv2.VideoCapture('http://10.0.0.43:8080/video') # video capture object (#ofcamera)
+#cap = cv2.VideoCapture('http://10.0.0.43:8080/video') # video capture object (#ofcamera)
 
 
 arucoDict = aruco.Dictionary_get(aruco.DICT_4X4_50)  # Specify the dictionary
 parameters = aruco.DetectorParameters_create()       # Specify detection parameters
+markerLength = 0.1 # sidelength of marker in meters
 
 #load previously saved calibration data
-with np.load('PhoneCalibration.npz') as X:
+with np.load('camCalibration.npz') as X:
     cameraMatrix, distCoeffs = [X[i] for i in ('cameraMatrix', 'distCoeffs')]
 
 cv2.namedWindow('Video Out', cv2.WINDOW_NORMAL)     # enable resize
+aver_x = []
+aver_y = []
+aver_z = []
 
 while True:
     # capture frame by frame
@@ -40,7 +44,7 @@ while True:
     # If at least one marker detected, process aruco marker
     if len(corners) > 0:
         # estimate the pose of each marker
-        rvecs, tvecs, _objPoints = aruco.estimatePoseSingleMarkers(corners, 1, cameraMatrix, distCoeffs)
+        rvecs, tvecs, _objPoints = aruco.estimatePoseSingleMarkers(corners, markerLength, cameraMatrix, distCoeffs)
         l = []
         for x in range(len(ids)):
             vec = tvecs[x][0]
@@ -59,14 +63,23 @@ while True:
 
         print(ids[C])
         print(camT)
+        aver_x.append(camT[0][1])
+        aver_y.append(camT[0][0])
+        aver_z.append(camT[0][2])
         # draw marker and id
         image = aruco.drawDetectedMarkers(image, corners, ids, borderColor=(0, 255, 0))
         # draw the pose axis of marker
-        image = aruco.drawAxis(image, cameraMatrix, distCoeffs, rvecs[C], tvecs[C], 1)
-
+        image = cv2.drawFrameAxes(image, cameraMatrix, distCoeffs, rvecs[C], tvecs[C], 1)
+    # average the distance
+    if len(aver_x) >= 20:
+        average_x, average_y, average_z = np.mean(aver_x), np.mean(aver_y), np.mean(aver_z)
+        print('average_distance = (', average_x, average_y, average_z, ')')
+        aver_x = []
+        aver_y = []
+        aver_z = []
     # display the resulting frame
     cv2.imshow('Video Out', image)                      # show image
-    cv2.resizeWindow('Video Out', 2048, 1840)             # image resize
+    cv2.resizeWindow('Video Out', 1440, 720)             # image resize
     #out.write(image)
     if cv2.waitKey(1) % 0xFF == ord('q'):               # quit at "q"
         break

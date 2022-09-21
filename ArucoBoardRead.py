@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 from collections import deque
 
 fig = plt.figure()
-#cap = cv2.VideoCapture(0)    # video capture(id of camera)
+cap = cv2.VideoCapture(0)    # video capture(id of camera)
 #cap = cv2.VideoCapture('http://192.168.1.109:8080/video') # video capture object (#ofcamera)
-cap = cv2.VideoCapture('http://10.0.0.43:8080/video') # video capture object (#ofcamera)
+#cap = cv2.VideoCapture('http://10.0.0.43:8080/video') # video capture object (#ofcamera)
 
 arucoDict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)  # Specify the dictionary
 parameters = aruco.DetectorParameters_create()       # Specify detection parameters
@@ -24,7 +24,7 @@ avy = deque([0, 0, 0])
 avz = deque([0, 0, 0])
 avg = len(avx)
 # load previously saved calibration data
-with np.load('PhoneCalibration.npz') as X:
+with np.load('camCalibration.npz') as X:
     cameraMatrix, distCoeffs = [X[i] for i in ('cameraMatrix', 'distCoeffs')]
 #cv2.namedWindow('Video Out', cv2.WINDOW_NORMAL)     # enable resize
 while True:
